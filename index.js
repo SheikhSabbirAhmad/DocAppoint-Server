@@ -51,6 +51,31 @@ async function run() {
       res.send(result);
     });
 
+    // PATCH
+    app.patch("/booking/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        const updatedData = req.body;
+
+        const result = await bookingCollection.updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $set: updatedData,
+          }
+        );
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+
+        res.status(500).send({
+          success: false,
+          message: "Update failed",
+        });
+      }
+    });
+
 
 run().catch(console.dir);
 
