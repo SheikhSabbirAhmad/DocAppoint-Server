@@ -34,6 +34,12 @@ async function run() {
     const bookingCollection = db.collection("bookings");
 
 
+    // GET
+    app.get("/booking", async (req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    });
+
 
 run().catch(console.dir);
 
