@@ -76,6 +76,24 @@ async function run() {
       }
     });
 
+    // DELETE
+    app.delete("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const result = await bookingCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      res.send(result);
+    });
+
+    await client.db("admin").command({ ping: 1 });
+
+    console.log("MongoDB Connected");
+  } finally {
+  }
+}
+
 
 run().catch(console.dir);
 
