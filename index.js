@@ -40,6 +40,17 @@ async function run() {
       res.send(result);
     });
 
+    // POST
+    app.post("/booking", async (req, res) => {
+      const bookingData = req.body;
+
+      const result = await bookingCollection.insertOne(
+        bookingData
+      );
+
+      res.send(result);
+    });
+
 
 run().catch(console.dir);
 
