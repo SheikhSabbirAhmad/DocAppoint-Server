@@ -21,10 +21,16 @@ This repository contains the **server-side** code built using **Node.js**, **Exp
 
 ---
 
-# 🌐 Live Server
+# 🚀 Live Links
 
 ```bash
-http://localhost:5000
+https://doc-appoint-doctor-appointment-mana.vercel.app
+```
+
+## 🌍 Server Side
+
+```bash
+https://doc-appoint-server-two.vercel.app
 ```
 
 ---
