@@ -2,11 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
-const {
-  MongoClient,
-  ServerApiVersion,
-  ObjectId,
-} = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 
 dotenv.config();
@@ -27,70 +23,100 @@ const client = new MongoClient(uri, {
   },
 });
 
-const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`));
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+);
+
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req?.headers.authorization;
+
   if (!authHeader) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
   const token = authHeader.split(" ")[1];
+
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     const { payload } = await jwtVerify(token, JWKS);
-    console.log(payload);
+
+    req.user = payload;
+
     next();
   } catch (error) {
     return res.status(403).json({ message: "Forbidden" });
   }
 };
 
+
 async function run() {
   try {
-    // await client.connect();
-
     const db = client.db("docAppoint");
     const bookingCollection = db.collection("bookings");
 
-
-    // GET
     app.get("/booking", verifyToken, async (req, res) => {
       const result = await bookingCollection.find().toArray();
       res.send(result);
     });
 
-    // POST
-    app.post("/booking", verifyToken, async (req, res) => {
-      const bookingData = req.body;
+    app.get("/booking/my-bookings", verifyToken, async (req, res) => {
+      try {
+        const userEmail = req.user?.email;
 
-      const result = await bookingCollection.insertOne(
-        bookingData
-      );
+        if (!userEmail) {
+          return res
+            .status(400)
+            .send({ message: "User email not found in token" });
+        }
 
-      res.send(result);
+        const result = await bookingCollection
+          .find({ userEmail }) // 🔥 FILTER HERE
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Server error" });
+      }
     });
 
-    // PATCH
+    app.post("/booking", verifyToken, async (req, res) => {
+      try {
+        const bookingData = req.body;
+
+        const userEmail = req.user?.email;
+
+        const finalBooking = {
+          ...bookingData,
+          userEmail, 
+        };
+
+        const result = await bookingCollection.insertOne(finalBooking);
+
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Create failed" });
+      }
+    });
+
     app.patch("/booking/:id", verifyToken, async (req, res) => {
       try {
         const id = req.params.id;
-
         const updatedData = req.body;
 
         const result = await bookingCollection.updateOne(
           { _id: new ObjectId(id) },
-          {
-            $set: updatedData,
-          }
+          { $set: updatedData }
         );
 
         res.send(result);
       } catch (error) {
         console.log(error);
-
         res.status(500).send({
           success: false,
           message: "Update failed",
@@ -98,26 +124,28 @@ async function run() {
       }
     });
 
-    // DELETE
     app.delete("/booking/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
+      try {
+        const id = req.params.id;
 
-      const result = await bookingCollection.deleteOne({
-        _id: new ObjectId(id),
-      });
+        const result = await bookingCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
 
-      res.send(result);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Delete failed" });
+      }
     });
-
-    // await client.db("admin").command({ ping: 1 });
 
     console.log("MongoDB Connected");
   } finally {
   }
 }
 
-
 run().catch(console.dir);
+
 
 app.get("/", (req, res) => {
   res.send("Server Running");
