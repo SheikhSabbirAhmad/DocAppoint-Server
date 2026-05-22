@@ -250,14 +250,14 @@ DELETE /booking/:id
 ✅ Scalable Backend Structure  
 ✅ CORS Enabled  
 ✅ Clean API Design  
+✅ JWT Authentication
+✅ Better Auth Integration
+✅ User Authorization
 
 ---
 
 # 🔐 Future Improvements
 
-- JWT Authentication
-- Better Auth Integration
-- User Authorization
 - Doctor Management APIs
 - Admin Dashboard
 - Payment Integration
